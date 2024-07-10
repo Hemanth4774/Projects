@@ -1,0 +1,163 @@
+#include<LiquidCrystal.h>
+#include <Servo.h>
+#include <dht.h>
+LiquidCrystal lcd(30,31,32,33,34,35);
+dht DHT;
+#define DHT11_PIN 7
+Servo myservo; 
+int flame = A0;
+int buttonstate = 0;
+const int trigPin = 9;
+const int echoPin = 10;
+long duration;
+int distance;
+String data;
+int m1 =22;
+int m2 =23;
+int m3 =24;
+int m4 =25;
+int relay1 = 26;
+int relay2 = 27;
+int relay3 = 28;
+int relay4 = 29;
+void setup()
+{
+ Serial.begin(9600);
+ lcd.begin(16,4);
+  myservo.attach(3);
+pinMode(trigPin, OUTPUT); 
+pinMode(echoPin, INPUT); 
+ pinMode(m1,OUTPUT);
+ pinMode(m2,OUTPUT);
+ pinMode(m3,OUTPUT);
+ pinMode(m4,OUTPUT);
+ pinMode(relay1,OUTPUT);
+ pinMode(relay2,OUTPUT);
+ pinMode(relay3,OUTPUT);
+ pinMode(relay4,OUTPUT);
+ digitalWrite(relay1,HIGH);
+ digitalWrite(relay2,HIGH);
+ digitalWrite(relay3,HIGH);
+ digitalWrite(relay4,HIGH);            
+}
+
+void loop()
+{
+  bluetooth();
+  sensors();
+}
+void bluetooth()
+{
+ if(Serial.available()>0)
+ {
+  data = Serial.readString();
+  Serial.print(data);
+  delay(500); 
+  if(data == "front")
+  {
+    digitalWrite(m1,HIGH);
+    digitalWrite(m2,LOW);
+    digitalWrite(m3,HIGH);
+    digitalWrite(m4,LOW);
+  }
+  if(data == "back")
+  {
+    digitalWrite(m1,LOW);
+    digitalWrite(m2,HIGH);
+    digitalWrite(m3,LOW);
+    digitalWrite(m4,HIGH);
+  }
+   if(data == "left")
+  {
+    digitalWrite(m1,LOW);
+    digitalWrite(m2,HIGH);
+    digitalWrite(m3,HIGH);
+    digitalWrite(m4,LOW);
+  }
+  if(data == "right")
+  {
+    digitalWrite(m1,HIGH);
+    digitalWrite(m2,LOW);
+    digitalWrite(m3,LOW);
+    digitalWrite(m4,HIGH);
+  }
+  if(data == "stop")
+  {
+    digitalWrite(m1,LOW);
+    digitalWrite(m2,LOW);
+    digitalWrite(m3,LOW);
+    digitalWrite(m4,LOW);
+  }
+   if(data == "seeding on")
+  {
+    digitalWrite(relay1,LOW);   
+  }
+  if(data == "seeding off")
+  {
+    digitalWrite(relay1,HIGH);   
+  }
+   if(data == "cutting on")
+  {
+    digitalWrite(relay2,LOW);   
+  }
+  if(data == "cutting off")
+  {
+    digitalWrite(relay2,HIGH);   
+  }
+  if(data == "water1 on")
+  {
+    digitalWrite(relay4,LOW);   
+  }
+  if(data == "water1 off")
+  {
+    digitalWrite(relay4,HIGH);   
+  }
+  if(data == "ploughing on")
+  {
+    myservo.write(270);              
+  delay(500);   
+  }
+  if(data == "ploughing off")
+  {
+   myservo.write(0);              
+  delay(500); 
+  }
+ }
+
+}
+void sensors()
+{
+ digitalWrite(trigPin, LOW);
+delayMicroseconds(2);
+// Sets the trigPin on HIGH state for 10 micro seconds
+digitalWrite(trigPin, HIGH);
+delayMicroseconds(10);
+digitalWrite(trigPin, LOW);
+// Reads the echoPin, returns the sound wave travel time in microseconds
+duration = pulseIn(echoPin, HIGH);
+// Calculating the distance
+distance= duration*0.034/2;
+int chk = DHT.read11(DHT11_PIN);
+lcd.clear();
+ lcd.setCursor(0,0);
+  lcd.print("temperature:");
+  lcd.print(DHT.temperature);
+  Serial.print("Temperature = ");
+  Serial.println(DHT.temperature);
+  lcd.setCursor(0,1);
+  lcd.print("humidity:");
+  lcd.print(DHT.humidity);
+  Serial.print("Humidity = ");
+  Serial.println(DHT.humidity);
+  //delay(1000);
+  buttonstate = analogRead(flame);
+  Serial.print("flame = ");
+  Serial.println(buttonstate);
+  lcd.setCursor(4,2);
+  lcd.print("flame: ");
+  lcd.print(buttonstate);
+  delay(500);
+// Prints the distance on the Serial Monitor
+Serial.print("Distance: ");
+Serial.println(distance);
+}
